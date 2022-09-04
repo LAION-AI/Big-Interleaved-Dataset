@@ -1,5 +1,5 @@
 # Big-Interleaved-Dataset
-Big-Interleaved-Dataset is a LAION project to create a open source multimodal dataset to the likes of Deepmind M3W (MultiModal MassiveWeb dataset) .
+Big-Interleaved-Dataset is a LAION project to create an open source multimodal dataset to the likes of Deepmind M3W (MultiModal MassiveWeb dataset) .
 
 ## Communications:
  Real time convos #big-interleaved-dataset channel in LAION [discord](https://discord.gg/kAyhUK3jyW).
