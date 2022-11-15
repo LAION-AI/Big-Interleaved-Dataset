@@ -1,9 +1,9 @@
 import pandas as pd
 from pyspark.sql import SparkSession
-from src import *
+from bild import *
 import boto3
 from pathlib import Path
-pqpath = "/fsx/home-harrysaini/Big-Interleaved-Dataset/src/sept22.parquet"
+pqpath = "/fsx/home-harrysaini/Big-Interleaved-Dataset/bild/sept22.parquet"
 
 config = dict()
 config["cwd"] = Path().absolute()
@@ -14,7 +14,7 @@ for y in config.values():
     y.mkdir(parents=True, exist_ok=True)
 
 import tempfile
-def downls(wurl):
+def downls_s3(wurl):
     s3client = boto3.client('s3', use_ssl=False)
     data = tempfile.TemporaryFile()
     s3client.download_fileobj(
@@ -25,6 +25,12 @@ def downls(wurl):
     data.seek(0)
     return data
 
+import tempfile
+def downls(wurl):
+    data = tempfile.TemporaryFile()
+    data.seek(0)
+    return data
+
 def framer(spark:SparkSession,pqpath,amount):
     df=spark.read.parquet(pqpath).limit(amount)
     return df
@@ -32,13 +38,15 @@ def framer(spark:SparkSession,pqpath,amount):
 
 
 def engine(wurl):
-    wfobj = downls(wurl)
+    wfobj = downls_s3(wurl)
     #We should read from another point but setting up here
     pipeline(wfobj,wurl,config)
+
+
 from pyspark.sql.types import IntegerType
 from pyspark.sql.functions import udf
 
- # if the function returns an int
+ # Let the function returns an int
 
 import logging
 logging.basicConfig(
