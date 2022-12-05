@@ -13,6 +13,7 @@ from PIL import Image
 import open_clip
 import wandb
 from tqdm.auto import tqdm
+from collections import OrderedDict
 
 def get_filtered_ngrams(before_text, after_text, sent_tokenizer, ngram_range, word_tokenizer):
     candidates = sent_tokenizer.tokenize(before_text) + sent_tokenizer.tokenize(after_text)
@@ -55,11 +56,12 @@ def main():
     wandb_table = None
     table_data = []
 
-    df = pd.read_parquet("~/data/bild/00000.parquet")
+    df = pd.read_parquet("00000_subset.parquet")
 
     num_images_logged = 0
     # Loop through all html
-    for idx in tqdm(range(df.shape[0])):
+    for idx in tqdm(range(67, df.shape[0])):
+
         row = df.iloc[idx]
 
         text = row['Text']
@@ -68,12 +70,29 @@ def main():
 
         # Get start and end indices of every image tag in text
         # Hack think more about this
-        img_to_idxs = [re.search(img_name, text).span() for img_name in img_to_url.keys() if img_name in text]
+        img_to_idxs = OrderedDict()
+        for img_name in img_to_url.keys():
+            if img_name in text:
+                img_to_idxs[img_name] = re.search(img_name, text).span()
         
         last_end = 0
         # For every image 
-        for idx, (img_name, img_url) in enumerate(img_to_url.items()):
+        for idx, (img_name, img_span) in enumerate(img_to_idxs.items()):
+
+            # get text before and text after image
+            start, end = img_span
+
+            before_text = text[last_end:start]
+            last_end = end
+
+            if idx == (len(img_to_idxs) - 1):
+                after_text = text[end:]
+            else:
+                next_img_name = list(img_to_idxs.keys())[idx + 1]
+                after_text = text[end:img_to_idxs[next_img_name][0]]
+
             # Check if image is jpeg, png
+            img_url = img_to_url[img_name]
             if ("jpeg" not in img_url) and ("png" not in img_url):
                 continue
             
@@ -85,16 +104,6 @@ def main():
 
             if sys.getsizeof(img_data) * 1e-3 < 5:
                 continue
-
-            # get text before and text after image
-            start, end = img_to_idxs[idx]
-            before_text = text[last_end:start]
-            last_end = end
-
-            if idx == (len(img_to_idxs) - 1):
-                after_text = text[end:]
-            else:
-                after_text = text[end:img_to_idxs[idx + 1][0]]
 
             # Get filtered ngrams for image before and after 
             candidates = get_filtered_ngrams(before_text, after_text, sent_tokenizer, ngram_range, word_tokenize)
@@ -112,8 +121,17 @@ def main():
                 inp_image = preprocess(image).unsqueeze(0).to('cuda')
                 tokenized_text = clip_tokenizer(candidates).to('cuda')
 
+                if tokenized_text.shape[0] > 1024:
+                    num_candidates = tokenized_text.shape[0]
+                    text_features = torch.zeros([num_candidates, 512]).to('cuda')
+                    for i in range(0, num_candidates, 1024):
+                        tokenized_text_sub = tokenized_text[i:i+1024]
+                        text_features[i:i+1024] = model.encode_text(tokenized_text_sub)
+
+                else:
+                    text_features = model.encode_text(tokenized_text)
+
                 image_features = model.encode_image(inp_image)
-                text_features = model.encode_text(tokenized_text)
 
                 image_features /= image_features.norm(dim=-1, keepdim=True)
                 text_features /= text_features.norm(dim=-1, keepdim=True)
@@ -128,7 +146,7 @@ def main():
 
             num_images_logged += 1
 
-            if num_images_logged % 10 == 0:
+            if num_images_logged % 1 == 0:
                 print (f"Num images logged {num_images_logged}")
                 wandb_table = wandb.Table(columns=["Image", "Predicted text", "Score"], data=table_data)
                 wandb.log({"predictions_table" : wandb_table})
