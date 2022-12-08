@@ -1,5 +1,6 @@
 import requests
 import tempfile
+import boto3
 
 def download_http(wurl):
     # Append "https://data.commoncrawl.org/" to the wurl
@@ -21,7 +22,6 @@ def download_http(wurl):
     # Read the entire contents of the file and return it
     return f.read()
 
-# Example usage
 
 
 def downls_s3(wurl):

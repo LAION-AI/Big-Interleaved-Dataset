@@ -13,7 +13,7 @@ def get_extension(url: str) -> str:
     filename, file_ext = parsed_url.path.rsplit('.', maxsplit=1)
     return file_ext
 
-import re
+
 
 def text2chunks(string):
     # Create an empty list to store the resulting substrings.
