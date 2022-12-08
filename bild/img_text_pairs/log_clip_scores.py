@@ -58,9 +58,11 @@ def main():
 
     df = pd.read_parquet("00000_subset.parquet")
 
+    start_idx = 0
+
     num_images_logged = 0
     # Loop through all html
-    for idx in tqdm(range(67, df.shape[0])):
+    for idx in tqdm(range(start_idx, df.shape[0])):
 
         row = df.iloc[idx]
 
@@ -146,8 +148,8 @@ def main():
 
             num_images_logged += 1
 
-            if num_images_logged % 1 == 0:
-                print (f"Num images logged {num_images_logged}")
+            if num_images_logged % 10 == 0:
+                # print (f"Num images logged {num_images_logged}")
                 wandb_table = wandb.Table(columns=["Image", "Predicted text", "Score"], data=table_data)
                 wandb.log({"predictions_table" : wandb_table})
 
