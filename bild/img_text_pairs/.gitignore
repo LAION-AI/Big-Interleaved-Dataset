@@ -1,3 +1,5 @@
 wandb/*
 .ipynb_checkpoints/*
 *.parquet
+output/*
+__pycache__/*
