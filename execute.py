@@ -8,39 +8,25 @@ from pyspark.sql.types import IntegerType
 from pyspark.sql.functions import udf
 import logging
 import time
+from bild.downtools import downls_s3,download_http
 from bild.spark_session_builder import build_spark_session
 
 def path_config():
     config = dict()
     config["cwd"] = Path().absolute()
-    config["Extraction_store"] = config["cwd"] / "exstore/"
-    config["log_store"] = config["cwd"] / "log_store/"
-    config["Stats_store"] = config["cwd"] / "stats_store/"
-    config["Vidstore"] = config["cwd"] / "vid_store/"
-    config["Imgstore"] = config["cwd"] / "img_store/"
-    config["Audstore"] = config["cwd"] / "aud_store/"
-    config["Iframestore"] = config["cwd"] / "iframe_store/"
+    config["rwd"] = config["cwd"] / "raw_store/"
+    config["Extraction_store"] = config["rwd"] / "exstore/"
+    config["log_store"] = config["rwd"] / "log_store/"
+    config["Stats_store"] = config["rwd"] / "stats_store/"
+    config["Vidstore"] = config["rwd"] / "vid_store/"
+    config["Imgstore"] = config["rwd"] / "img_store/"
+    config["Audstore"] = config["rwd"] / "aud_store/"
+    config["Iframestore"] = config["rwd"] / "iframe_store/"
     for y in config.values():
         y.mkdir(parents=True, exist_ok=True)
     return config
 
 
-def downls_s3(wurl):
-    s3client = boto3.client('s3', use_ssl=False)
-    data = tempfile.TemporaryFile()
-    s3client.download_fileobj(
-    'commoncrawl',
-    wurl,
-    data
-    )
-    data.seek(0)
-    return data
-
-
-def downls_http(wurl):
-    data = tempfile.TemporaryFile()
-    data.seek(0)
-    return data
 
 def framer(spark:SparkSession,pqpath,amount):
     df=spark.read.parquet(pqpath).limit(amount)
@@ -64,7 +50,7 @@ logging.basicConfig(
     format="%(process)d:%(asctime)s:%(levelname)s:%(message)s",
     datefmt="%d-%b-%y %H:%M:%S",
 )
-pqpath = "/fsx/home-harrysaini/projects/Big-Interleaved-Dataset/bild/sept22.parquet"
+pqpath = "./bild/sept22.parquet"
 
 def main():
     spark=build_spark_session(master="local",num_cores=16,mem_gb=16)
