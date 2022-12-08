@@ -1,0 +1,12 @@
+./exstore/*
+./stats_store/*
+./log_store/*
+./bild/__pycache__/*
+./aud_store/
+./aud_store/*
+./iframe_store/*
+./iframe_store/
+./vid_store/*
+./vid_store/
+./img_store/*
+./exstore/
