@@ -1,0 +1,7 @@
+boto3==1.26.25
+docarray==0.20.0
+fastwarc==0.13.7
+pandas==1.5.2
+pyspark==3.3.1
+requests==2.28.1
+resiliparse==0.13.7
