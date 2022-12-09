@@ -1,0 +1,8 @@
+wandb==0.12.21
+open_clip_torch
+pycld3==0.22
+webdataset==0.1.103
+img2dataset==1.35.0
+nltk==3.7
+pandas==1.5.2
+tqdm==4.64.1

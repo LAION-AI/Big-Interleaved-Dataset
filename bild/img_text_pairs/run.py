@@ -12,7 +12,7 @@ from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, SEPERA
 def main():
     filename = "~/data/bild/00000.parquet"
     convert = True
-    download_imgs = True
+    download_imgs = False
     compute_clip_similarity = True
     output_dir = os.path.abspath("output")
     ngram_range = (3, 20)
@@ -68,10 +68,10 @@ def main():
                       'inference_time' : 0,
                       'matches' : 0}
 
-        from itertools import islice
+        # from itertools import islice
 
         # Loop through the images dir
-        for sample in islice(dataset, 0, 200):
+        for sample in iter(dataset):
             raw_counts['total'] += 1
 
             # Read in image and text 
@@ -139,6 +139,7 @@ def main():
                     predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
                     wandb.log({"predictions_table" : predictions_table})
 
+        num_pred_rows = len(predictions_table_data)
         if num_pred_rows <= 200000:
             predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
             wandb.log({"predictions_table" : predictions_table})

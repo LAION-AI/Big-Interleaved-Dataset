@@ -9,13 +9,20 @@ from nltk.corpus import wordnet as wn
 from collections import OrderedDict
 
 SEPERATOR = "###img###sep###"
+nltk_download = False
+
+if nltk_download:
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')
 
 def convert_to_image_url_text_parquet(filename):
     df = pd.read_parquet(filename)
 
     img_url_to_caption = {'URL' : [], 'TEXT' : []}
 
-    end_index = 20 #df.shape[0]
+    end_index = df.shape[0]
     for row_idx in tqdm(range(end_index)):
         row = df.iloc[row_idx]
 
