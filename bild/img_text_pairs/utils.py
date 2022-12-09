@@ -1,7 +1,11 @@
 import json
 import re
+import nltk
 import pandas as pd
 from tqdm import tqdm
+from nltk import ngrams 
+from nltk.tokenize import word_tokenize
+from nltk.corpus import wordnet as wn
 from collections import OrderedDict
 
 SEPERATOR = "###img###sep###"
@@ -11,7 +15,7 @@ def convert_to_image_url_text_parquet(filename):
 
     img_url_to_caption = {'URL' : [], 'TEXT' : []}
 
-    end_index = df.shape[0]
+    end_index = 20 #df.shape[0]
     for row_idx in tqdm(range(end_index)):
         row = df.iloc[row_idx]
 
@@ -50,8 +54,50 @@ def convert_to_image_url_text_parquet(filename):
 
     new_df = pd.DataFrame(img_url_to_caption)
 
-    new_filename = "{}_url_to_text.parquet".format(filename.split('.')[-2][1:])
+    new_filename = "{}_url_to_text.parquet".format(filename.split('.')[-2])
+
+    print (f"{new_filename} created")
 
     new_df.to_parquet(new_filename, compression=None)
 
     return new_filename
+
+def get_filtered_ngrams(before_text, after_text, ngram_range):
+    sent_tokenizer = nltk.data.load('tokenizers/punkt/PY3/english.pickle')
+    candidates = sent_tokenizer.tokenize(before_text) + sent_tokenizer.tokenize(after_text)
+    import pdb; pdb.set_trace()
+
+    filtered_candidates = []
+    for i in range(len(candidates)):
+        for n in range(*ngram_range):
+            for item in ngrams(candidates[i].split(), n):
+                item = " ".join(item)
+                word_tokens = word_tokenize(item)	
+                adj_present = False
+                verb_or_noun_present = False
+
+                for word in word_tokens:
+                    wordtype = set()
+                    for tmp in wn.synsets(word):
+                        if tmp.name().split('.')[0] == word:
+                            wordtype.add(tmp.pos())
+
+                    if ('a' in wordtype or 's' in wordtype):
+                        adj_present = True
+
+                    if ('n' in wordtype or 'v' in wordtype):
+                        verb_or_noun_present = True
+
+                    if adj_present and verb_or_noun_present:
+                        filtered_candidates.append(item)
+                        break
+
+def get_before_after_text(text):
+    sep_span = re.search(SEPERATOR, text).span()
+
+    # Remove urls and email ids - see pycld3 README
+    url_re = r"\b(?:https?://|www\.)[a-z0-9-]+(\.[a-z0-9-]+)+(?:[/?].*)?"
+    before_text = re.sub(url_re, "", text[:sep_span[0]].strip())
+    after_text = re.sub(url_re, "", text[sep_span[1]:].strip())
+
+    return before_text, after_text
