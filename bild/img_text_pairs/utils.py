@@ -65,7 +65,6 @@ def convert_to_image_url_text_parquet(filename):
 def get_filtered_ngrams(before_text, after_text, ngram_range):
     sent_tokenizer = nltk.data.load('tokenizers/punkt/PY3/english.pickle')
     candidates = sent_tokenizer.tokenize(before_text) + sent_tokenizer.tokenize(after_text)
-    import pdb; pdb.set_trace()
 
     filtered_candidates = []
     for i in range(len(candidates)):
@@ -91,6 +90,8 @@ def get_filtered_ngrams(before_text, after_text, ngram_range):
                     if adj_present and verb_or_noun_present:
                         filtered_candidates.append(item)
                         break
+
+    return filtered_candidates
 
 def get_before_after_text(text):
     sep_span = re.search(SEPERATOR, text).span()
