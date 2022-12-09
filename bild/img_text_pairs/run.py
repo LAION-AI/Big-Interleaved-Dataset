@@ -4,20 +4,22 @@ import wandb
 import torch
 import shutil
 import cld3
+import fire
 import webdataset as wds
 from img2dataset import download
 import open_clip
 from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, SEPERATOR, get_before_after_text
 
-def main():
-    filename = "~/data/bild/00000.parquet"
-    convert = True
-    download_imgs = False
-    compute_clip_similarity = True
+def run_pipeline(filename, 
+                 convert=True, 
+                 download_imgs=True, 
+                 compute_clip_similarity=True, 
+                 ngram_range=(3, 20), 
+                 enable_wandb=True, 
+                 log_frequency=1000,
+                 matching_threshold=0.3):
+
     output_dir = os.path.abspath("output")
-    ngram_range = (3, 20)
-    enable_wandb = True
-    matching_threshold = 0.3
 
     if convert:
         converted_filename = convert_to_image_url_text_parquet(filename)
@@ -44,6 +46,7 @@ def main():
         )
 
     if compute_clip_similarity:
+        # TODO - take care of this
         filename = "00000.tar"
         path_to_wds = os.path.join(output_dir, filename)
 
@@ -55,12 +58,11 @@ def main():
         dataset = wds.WebDataset(path_to_wds).decode("pil")
 
         # Wandb stuff
-        wandb.init(project="img_text_pairs", entity="sid1793", mode="online")
+        if enable_wandb:
+            wandb.init(project="img_text_pairs", entity="sid1793", mode="online")
         predictions_table_data = []
         predictions_table_cols = ["Image", "Predicted text", "Score"]
         stats_table_cols = ["Description", "Fraction", "Counts"]
-
-        log_freq = 10000
 
         # Dict for maintaining counts
         raw_counts = {'total' : 0,
@@ -85,11 +87,11 @@ def main():
             after_lang = cld3.get_language(after_text)
 
             # Check if English
-            if before_lang != "en":
-                before_text = ""
+            #if before_lang != "en":
+            #    before_text = ""
 
-            if after_lang != "en":
-                after_text = ""
+            #if after_lang != "en":
+            #    after_text = ""
 
             # Compute and filter ngrams
             candidates = get_filtered_ngrams(before_text, after_text, ngram_range)
@@ -104,6 +106,8 @@ def main():
 
                     inp_image = preprocess(image).unsqueeze(0).to('cuda')
                     tokenized_text = clip_tokenizer(candidates).to('cuda')
+
+                    import pdb; pdb.set_trace()
 
                     text_features = model.encode_text(tokenized_text)
 
@@ -126,23 +130,29 @@ def main():
                 if score >= matching_threshold:
                     raw_counts['matches'] += 1
 
-                predictions_table_data.append([wandb.Image(image), prediction, score])
+                if enable_wandb:
+                    predictions_table_data.append([wandb.Image(image), prediction, score])
 
-                num_pred_rows = len(predictions_table_data)
+                    num_pred_rows = len(predictions_table_data)
 
-                # wandb recommends logging a table of only 200000 rows
-                if num_pred_rows >= 200000:
-                    continue
+                    # wandb recommends logging a table of only 200000 rows
+                    if num_pred_rows >= 200000:
+                        continue
 
-                if (len(predictions_table_data) % log_freq) == 0:
+                if (len(predictions_table_data) % log_frequency) == 0:
 
-                    predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
-                    wandb.log({"predictions_table" : predictions_table})
+                    if enable_wandb:
+                        predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
+                        wandb.log({"predictions_table" : predictions_table})
+
+                    print (raw_counts)
 
         num_pred_rows = len(predictions_table_data)
         if num_pred_rows <= 200000:
-            predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
-            wandb.log({"predictions_table" : predictions_table})
+
+            if enable_wandb:
+                predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
+                wandb.log({"predictions_table" : predictions_table})
 
         # Logging for stats 
         stats_table_data = []
@@ -150,8 +160,9 @@ def main():
         for key, val in raw_counts.items():
             stats_table_data.append([key, val / raw_counts['total'], val])
 
-        stats_table = wandb.Table(columns=stats_table_cols, data=stats_table_data)
-        wandb.log({"stats_table" : stats_table})
+        if enable_wandb:
+            stats_table = wandb.Table(columns=stats_table_cols, data=stats_table_data)
+            wandb.log({"stats_table" : stats_table})
 
 if __name__ == "__main__":
-    main()
+    fire.Fire(run_pipeline)
