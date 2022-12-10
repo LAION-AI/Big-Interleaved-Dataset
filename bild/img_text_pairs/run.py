@@ -70,8 +70,6 @@ def run_pipeline(filename,
                       'inference_time' : 0,
                       'matches' : 0}
 
-        # from itertools import islice
-
         # Loop through the images dir
         for sample in iter(dataset):
             raw_counts['total'] += 1
@@ -87,11 +85,11 @@ def run_pipeline(filename,
             after_lang = cld3.get_language(after_text)
 
             # Check if English
-            #if before_lang != "en":
-            #    before_text = ""
+            if before_lang != "en":
+                before_text = ""
 
-            #if after_lang != "en":
-            #    after_text = ""
+            if after_lang != "en":
+                after_text = ""
 
             # Compute and filter ngrams
             candidates = get_filtered_ngrams(before_text, after_text, ngram_range)
