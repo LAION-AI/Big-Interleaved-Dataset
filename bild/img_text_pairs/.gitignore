@@ -3,3 +3,4 @@ wandb/*
 *.parquet
 output/*
 __pycache__/*
+*.out
