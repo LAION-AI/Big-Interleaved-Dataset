@@ -8,7 +8,7 @@ import fire
 import webdataset as wds
 from img2dataset import download
 import open_clip
-from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, SEPERATOR, get_before_after_text
+from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text
 
 def run_pipeline(filename, 
                  convert=True, 
@@ -84,10 +84,10 @@ def run_pipeline(filename,
             after_lang = cld3.get_language(after_text)
 
             # Check if English
-            if before_lang != "en":
+            if before_lang is None or before_lang.language != "en":
                 before_text = ""
 
-            if after_lang != "en":
+            if after_lang is None or after_lang.language != "en":
                 after_text = ""
 
             # Compute and filter ngrams
@@ -104,7 +104,15 @@ def run_pipeline(filename,
                     inp_image = preprocess(image).unsqueeze(0).to('cuda')
                     tokenized_text = clip_tokenizer(candidates).to('cuda')
 
-                    text_features = model.encode_text(tokenized_text)
+                    if tokenized_text.shape[0] > 1024:
+                        num_candidates = tokenized_text.shape[0]
+                        text_features = torch.zeros([num_candidates, 512]).to('cuda')
+                        for i in range(0, num_candidates, 1024):
+                            tokenized_text_sub = tokenized_text[i:i+1024]
+                            text_features[i:i+1024] = model.encode_text(tokenized_text_sub)
+
+                    else:
+                        text_features = model.encode_text(tokenized_text)
 
                     image_features = model.encode_image(inp_image)
 
