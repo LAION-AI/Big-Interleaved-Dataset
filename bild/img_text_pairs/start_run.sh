@@ -21,4 +21,4 @@ source /admin/home-siddhesh1793/.env/bin/activate
 echo python3 version = `python3 --version`
 python -c "import torch; print (torch.__version__)"
 
-python run.py --filename /admin/home-siddhesh1793/data/00000.parquet
+python run.py --filename /admin/home-siddhesh1793/data/00000.parquet --convert False --download_imgs False

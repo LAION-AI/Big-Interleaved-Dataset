@@ -47,15 +47,14 @@ def run_pipeline(filename,
 
     if compute_clip_similarity:
         # TODO - take care of this
-        filename = "00000.tar"
-        path_to_wds = os.path.join(output_dir, filename)
+        filenames = [os.path.join(output_dir, filename) for filename in os.listdir(output_dir) if "tar" in filename]
 
         # Create model
         model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32-quickgelu', pretrained='laion400m_e32')
         model = model.to('cuda')
         clip_tokenizer = open_clip.get_tokenizer('ViT-B-32-quickgelu')
 
-        dataset = wds.WebDataset(path_to_wds).decode("pil")
+        dataset = wds.WebDataset(filenames).decode("pil")
 
         # Wandb stuff
         if enable_wandb:
@@ -71,7 +70,7 @@ def run_pipeline(filename,
                       'matches' : 0}
 
         # Loop through the images dir
-        for sample in iter(dataset):
+        for idx, sample in enumerate(iter(dataset)):
             raw_counts['total'] += 1
 
             # Read in image and text 
@@ -104,8 +103,6 @@ def run_pipeline(filename,
 
                     inp_image = preprocess(image).unsqueeze(0).to('cuda')
                     tokenized_text = clip_tokenizer(candidates).to('cuda')
-
-                    import pdb; pdb.set_trace()
 
                     text_features = model.encode_text(tokenized_text)
 
@@ -144,6 +141,9 @@ def run_pipeline(filename,
                         wandb.log({"predictions_table" : predictions_table})
 
                     print (raw_counts)
+
+            if (idx % log_frequency) == 0:
+                print (raw_counts)
 
         num_pred_rows = len(predictions_table_data)
         if num_pred_rows <= 200000:
