@@ -57,6 +57,8 @@ def run_pipeline(filename=None,
             distributor="multiprocessing",
         )
 
+    config_to_log = locals()
+
     if compute_clip_similarity:
         filenames = [os.path.join(output_dir, filename) for filename in os.listdir(output_dir) if "tar" in filename]
 
@@ -67,7 +69,7 @@ def run_pipeline(filename=None,
 
         # Wandb stuff
         if enable_wandb:
-            wandb.init(project="img_text_pairs", entity="sid1793", mode="online")
+            wandb.init(project="img_text_pairs", entity="sid1793", mode="online", config=config_to_log)
         predictions_table_data = []
         predictions_table_cols = ["Image", "Predicted text", "Score"]
         stats_table_cols = ["Description", "Fraction", "Counts"]
