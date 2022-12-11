@@ -8,6 +8,7 @@ import fire
 import webdataset as wds
 from img2dataset import download
 import open_clip
+from collections import Counter
 from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text
 
 def run_pipeline(filename=None, 
@@ -71,14 +72,11 @@ def run_pipeline(filename=None,
         stats_table_cols = ["Description", "Fraction", "Counts"]
 
         # Dict for maintaining counts
-        raw_counts = {'total' : 0,
-                      'num_english' : 0,
-                      'inference_time' : 0,
-                      'matches' : 0}
+        raw_counts = Counter()
 
         # Loop through the images dir
         for idx, sample in enumerate(iter(dataset)):
-            raw_counts['total'] += 1
+            raw_counts['total_imgs'] += 1
 
             # Read in image and text 
             text = sample['txt']
@@ -90,18 +88,25 @@ def run_pipeline(filename=None,
             before_lang = cld3.get_language(before_text)
             after_lang = cld3.get_language(after_text)
 
-            # Check if English
-            if before_lang is None or before_lang.language != "en":
-                before_text = ""
+            if before_lang is not None:
+                lang = before_lang.launguage
+                raw_counts[f"before_{lang}"] += 1
 
-            if after_lang is None or after_lang.language != "en":
-                after_text = ""
+            if after_lang is not None:
+                lang = after_lang.launguage
+                raw_counts[f"after_{lang}"] += 1
 
             # Compute and filter ngrams
-            candidates = get_filtered_ngrams(before_text, after_text, ngram_range)
+            candidates = []
+
+            if (before_lang is not None) and (before_lang.languague == "en"):
+                candidates.extend(get_filtered_ngrams(before_text, ngram_range))
+
+            if (after_lang is not None) and (after_lang.languague == "en"):
+                candidates.extend(get_filtered_ngrams(after_text, ngram_range))
 
             if len(candidates) > 0:
-                raw_counts['num_english'] += 1
+                raw_counts['num_candidates_scored'] += 1
 
                 torch.cuda.synchronize()
                 start_time = time.time()
@@ -169,9 +174,14 @@ def run_pipeline(filename=None,
 
         # Logging for stats 
         stats_table_data = []
-
         for key, val in raw_counts.items():
-            stats_table_data.append([key, val / raw_counts['total'], val])
+            if ("before" in key) or ("after" in key):
+                stats_table_data.append([key, val / raw_counts['total_imgs'], val])
+
+        stats_table_data.append(["inference_time", raw_counts["inference_time"] / raw_counts["num_candidates_scored"], raw_counts["inference_time"]])
+        stats_table_data.append(["matches", raw_counts["matches"] / raw_counts["num_candidates_scored"], raw_counts["matches"]])
+        stats_table_data.append(["total_imgs", 1, raw_counts["total_imgs"]])
+        stats_table_data.append(["num_candidates_scored", 1, raw_counts["num_candidates_scored"]])
 
         if enable_wandb:
             stats_table = wandb.Table(columns=stats_table_cols, data=stats_table_data)

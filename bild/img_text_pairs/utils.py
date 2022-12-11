@@ -70,9 +70,9 @@ def convert_to_image_url_text_parquet(filename):
 
     return new_filename
 
-def get_filtered_ngrams(before_text, after_text, ngram_range):
+def get_filtered_ngrams(text, ngram_range):
     sent_tokenizer = nltk.data.load('tokenizers/punkt/PY3/english.pickle')
-    candidates = sent_tokenizer.tokenize(before_text) + sent_tokenizer.tokenize(after_text)
+    candidates = sent_tokenizer.tokenize(text)
 
     filtered_candidates = []
     for i in range(len(candidates)):
