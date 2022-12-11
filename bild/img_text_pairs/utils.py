@@ -18,12 +18,12 @@ if nltk_download:
     nltk.download('wordnet')
     nltk.download('omw-1.4')
 
-def convert_to_image_url_text_parquet(filename):
+def convert_to_image_url_text_parquet(filename, debug):
     df = pd.read_parquet(filename)
 
     img_url_to_caption = {'URL' : [], 'TEXT' : []}
 
-    end_index = df.shape[0]
+    end_index = 20 if debug else df.shape[0]
     for row_idx in tqdm(range(end_index)):
         row = df.iloc[row_idx]
 

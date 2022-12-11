@@ -22,6 +22,7 @@ def run_pipeline(filename=None,
                  log_frequency=1000,
                  model_name='ViT-B-32-quickgelu',
                  pretrained='laion400m_e32',
+                 debug=False,
                  matching_threshold=0.3):
 
     output_dir = os.path.abspath("output") if output_dir is None else output_dir
@@ -30,7 +31,7 @@ def run_pipeline(filename=None,
         if filename is None:
             raise ValueError("Specify filename to convert")
 
-        converted_filename = convert_to_image_url_text_parquet(filename)
+        converted_filename = convert_to_image_url_text_parquet(filename, debug)
 
     if download_imgs:
         if not convert and converted_filename is None:
