@@ -10,23 +10,31 @@ from img2dataset import download
 import open_clip
 from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text
 
-def run_pipeline(filename, 
+def run_pipeline(filename=None, 
                  convert=True, 
                  download_imgs=True, 
+                 converted_filename=None,
                  compute_clip_similarity=True, 
+                 output_dir=None,
                  ngram_range=(3, 20), 
                  enable_wandb=True, 
                  log_frequency=1000,
+                 model_name='ViT-B-32-quickgelu',
+                 pretrained='laion400m_e32',
                  matching_threshold=0.3):
 
-    output_dir = os.path.abspath("output")
+    output_dir = os.path.abspath("output") if output_dir is None else output_dir
 
     if convert:
+        if filename is None:
+            raise ValueError("Specify filename to convert")
+
         converted_filename = convert_to_image_url_text_parquet(filename)
-    else:
-        converted_filename = filename
 
     if download_imgs:
+        if not convert and converted_filename is None:
+            raise ValueError("Either set \'convert\' to True or specify converted filename")
+
         if os.path.exists(output_dir):
             shutil.rmtree(output_dir)
 
@@ -46,13 +54,12 @@ def run_pipeline(filename,
         )
 
     if compute_clip_similarity:
-        # TODO - take care of this
         filenames = [os.path.join(output_dir, filename) for filename in os.listdir(output_dir) if "tar" in filename]
 
         # Create model
-        model, _, preprocess = open_clip.create_model_and_transforms('ViT-B-32-quickgelu', pretrained='laion400m_e32')
+        model, _, preprocess = open_clip.create_model_and_transforms(model_name, pretrained=pretrained)
         model = model.to('cuda')
-        clip_tokenizer = open_clip.get_tokenizer('ViT-B-32-quickgelu')
+        clip_tokenizer = open_clip.get_tokenizer(model_name)
 
         dataset = wds.WebDataset(filenames).decode("pil")
 

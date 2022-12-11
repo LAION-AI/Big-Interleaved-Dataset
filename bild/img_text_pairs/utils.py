@@ -11,6 +11,7 @@ from collections import OrderedDict
 SEPERATOR = "###img###sep###"
 nltk_download = False
 
+# TODO - clean this up
 if nltk_download:
     nltk.download('averaged_perceptron_tagger')
     nltk.download('punkt')
