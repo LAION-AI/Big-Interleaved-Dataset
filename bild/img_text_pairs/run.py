@@ -7,8 +7,8 @@ import cld3
 import fire
 import webdataset as wds
 from img2dataset import download
-import open_clip
 from collections import Counter
+from models import get_model
 from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text
 
 def run_pipeline(filename=None, 
@@ -20,12 +20,14 @@ def run_pipeline(filename=None,
                  ngram_range=(3, 20), 
                  enable_wandb=True, 
                  log_frequency=1000,
-                 model_name='ViT-B-32-quickgelu',
-                 pretrained='laion400m_e32',
+                 model_type='open_clip',
+                 device='cuda',
+                 max_batch_size=1024,
                  debug=False,
                  matching_threshold=0.3):
 
     output_dir = os.path.abspath("output") if output_dir is None else output_dir
+    log_frequency = 1 if debug else log_frequency
 
     if convert:
         if filename is None:
@@ -59,9 +61,7 @@ def run_pipeline(filename=None,
         filenames = [os.path.join(output_dir, filename) for filename in os.listdir(output_dir) if "tar" in filename]
 
         # Create model
-        model, _, preprocess = open_clip.create_model_and_transforms(model_name, pretrained=pretrained)
-        model = model.to('cuda')
-        clip_tokenizer = open_clip.get_tokenizer(model_name)
+        model = get_model(model_type, device, max_batch_size)
 
         dataset = wds.WebDataset(filenames).decode("pil")
 
@@ -90,20 +90,20 @@ def run_pipeline(filename=None,
             after_lang = cld3.get_language(after_text)
 
             if before_lang is not None:
-                lang = before_lang.launguage
+                lang = before_lang.language
                 raw_counts[f"before_{lang}"] += 1
 
             if after_lang is not None:
-                lang = after_lang.launguage
+                lang = after_lang.language
                 raw_counts[f"after_{lang}"] += 1
 
             # Compute and filter ngrams
             candidates = []
 
-            if (before_lang is not None) and (before_lang.languague == "en"):
+            if (before_lang is not None) and (before_lang.language == "en"):
                 candidates.extend(get_filtered_ngrams(before_text, ngram_range))
 
-            if (after_lang is not None) and (after_lang.languague == "en"):
+            if (after_lang is not None) and (after_lang.language == "en"):
                 candidates.extend(get_filtered_ngrams(after_text, ngram_range))
 
             if len(candidates) > 0:
@@ -114,20 +114,8 @@ def run_pipeline(filename=None,
                 # Compute embeddings
                 with torch.no_grad(), torch.cuda.amp.autocast():
 
-                    inp_image = preprocess(image).unsqueeze(0).to('cuda')
-                    tokenized_text = clip_tokenizer(candidates).to('cuda')
-
-                    if tokenized_text.shape[0] > 1024:
-                        num_candidates = tokenized_text.shape[0]
-                        text_features = torch.zeros([num_candidates, 512]).to('cuda')
-                        for i in range(0, num_candidates, 1024):
-                            tokenized_text_sub = tokenized_text[i:i+1024]
-                            text_features[i:i+1024] = model.encode_text(tokenized_text_sub)
-
-                    else:
-                        text_features = model.encode_text(tokenized_text)
-
-                    image_features = model.encode_image(inp_image)
+                    image_features = model.encode_image(image)
+                    text_features = model.encode_text(candidates)
 
                     image_features /= image_features.norm(dim=-1, keepdim=True)
                     text_features /= text_features.norm(dim=-1, keepdim=True)
