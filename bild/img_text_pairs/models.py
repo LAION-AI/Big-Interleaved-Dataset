@@ -14,6 +14,7 @@ class Model:
 
 class OpenCLIPModel(Model):
     def __init__(self, device, max_batch_size) -> None:
+        super().__init__()
         model_name = 'ViT-B-32-quickgelu'
         pretrained = 'laion400m_e32'
         self.model, _, self.preprocess = open_clip.create_model_and_transforms(model_name, pretrained=pretrained)
@@ -43,6 +44,7 @@ class OpenCLIPModel(Model):
 
 class SentenceTransformerModel(Model):
     def __init__(self, device, max_batch_size) -> None:
+        super().__init__()
         image_model_name = 'clip-ViT-B-32'
         self.image_model = SentenceTransformer(image_model_name, device=device)
 

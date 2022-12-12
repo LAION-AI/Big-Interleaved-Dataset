@@ -22,7 +22,7 @@ def run_pipeline(filename=None,
                  log_frequency=1000,
                  model_type='open_clip',
                  device='cuda',
-                 max_batch_size=1024,
+                 max_batch_size=2e10,
                  debug=False,
                  matching_threshold=0.3):
 
