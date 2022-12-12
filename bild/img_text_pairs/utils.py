@@ -76,7 +76,7 @@ def get_filtered_ngrams(text, ngram_range, lang):
     if lang == 'en':
         candidates = sent_tokenizer.tokenize(text)
     else:
-        candidates = [[text]]
+        candidates = [text]
 
     filtered_candidates = []
     for i in range(len(candidates)):

@@ -17,8 +17,23 @@ echo PATH=$PATH
 echo HOSTNAMES=$HOSTNAMES
 echo hostname=`hostname`
 
+# ARGS
+CONVERT="False"
+DOWNLOAD_IMGS="False"
+MODEL_TYPE="sentence_transformers"
+MATCHING_THRESHOLD=0.28
+ENABLE_WANDB="True"
+MAX_BATCH_SIZE=16384
+echo CONVERT=$CONVERT
+echo DOWNLOAD_IMGS=$DOWNLOAD_IMGS
+echo MODEL_TYPE=$MODEL_TYPE
+echo MATCHING_THRESHOLD=$MATCHING_THRESHOLD
+echo ENABLE_WANDB=$ENABLE_WANDB
+echo MAX_BATCH_SIZE=$MAX_BATCH_SIZE
+# ARGS
+
 source /admin/home-siddhesh1793/.env/bin/activate
 echo python3 version = `python3 --version`
 python -c "import torch; print (torch.__version__)"
 
-python run.py --convert False --download_imgs False --model_type sentence_transformers --max_batch_size --matching_threshold 0.28
+python run.py --convert $CONVERT --download_imgs $DOWNLOAD_IMGS --model_type $MODEL_TYPE --matching_threshold $MATCHING_THRESHOLD --enable_wandb $ENABLE_WANDB --max_batch_size $MAX_BATCH_SIZE

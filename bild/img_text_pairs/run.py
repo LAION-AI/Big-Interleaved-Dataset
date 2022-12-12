@@ -23,9 +23,9 @@ def run_pipeline(filename=None,
                  log_frequency=10,
                  model_type='open_clip',
                  device='cuda',
-                 max_batch_size=2e10,
+                 max_batch_size=int(2e5),
                  debug=False,
-                 wandb_log_freq=1000,
+                 wandb_log_frequency=1000,
                  matching_threshold=0.3):
 
     output_dir = os.path.abspath("output") if output_dir is None else output_dir
