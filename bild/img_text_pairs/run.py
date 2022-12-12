@@ -5,6 +5,7 @@ import torch
 import shutil
 import cld3
 import fire
+import logging
 import webdataset as wds
 from img2dataset import download
 from collections import Counter
@@ -19,15 +20,17 @@ def run_pipeline(filename=None,
                  output_dir=None,
                  ngram_range=(3, 20), 
                  enable_wandb=True, 
-                 log_frequency=1000,
+                 log_frequency=10,
                  model_type='open_clip',
                  device='cuda',
                  max_batch_size=2e10,
                  debug=False,
+                 wandb_log_freq=1000,
                  matching_threshold=0.3):
 
     output_dir = os.path.abspath("output") if output_dir is None else output_dir
     log_frequency = 1 if debug else log_frequency
+    wandb_log_frequency = 1 if debug else wandb_log_frequency
 
     if convert:
         if filename is None:
@@ -145,7 +148,7 @@ def run_pipeline(filename=None,
                     if num_pred_rows >= 200000:
                         continue
 
-                if (len(predictions_table_data) % log_frequency) == 0:
+                if (len(predictions_table_data) % wandb_log_frequency) == 0:
 
                     if enable_wandb:
                         predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
@@ -155,6 +158,7 @@ def run_pipeline(filename=None,
 
             if (idx % log_frequency) == 0:
                 print (raw_counts)
+                logging.info(raw_counts)
 
         num_pred_rows = len(predictions_table_data)
         if num_pred_rows <= 200000:
