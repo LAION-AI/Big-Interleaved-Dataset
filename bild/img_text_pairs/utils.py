@@ -72,7 +72,11 @@ def convert_to_image_url_text_parquet(filename, debug):
 
 def get_filtered_ngrams(text, ngram_range, lang):
     sent_tokenizer = nltk.data.load('tokenizers/punkt/PY3/english.pickle')
-    candidates = sent_tokenizer.tokenize(text)
+
+    if lang == 'en':
+        candidates = sent_tokenizer.tokenize(text)
+    else:
+        candidates = [[text]]
 
     filtered_candidates = []
     for i in range(len(candidates)):
