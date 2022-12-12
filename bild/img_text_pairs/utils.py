@@ -70,7 +70,7 @@ def convert_to_image_url_text_parquet(filename, debug):
 
     return new_filename
 
-def get_filtered_ngrams(text, ngram_range):
+def get_filtered_ngrams(text, ngram_range, lang):
     sent_tokenizer = nltk.data.load('tokenizers/punkt/PY3/english.pickle')
     candidates = sent_tokenizer.tokenize(text)
 
@@ -79,26 +79,29 @@ def get_filtered_ngrams(text, ngram_range):
         for n in range(*ngram_range):
             for item in ngrams(candidates[i].split(), n):
                 item = " ".join(item)
-                word_tokens = word_tokenize(item)	
-                adj_present = False
-                verb_or_noun_present = False
 
-                for word in word_tokens:
-                    wordtype = set()
-                    for tmp in wn.synsets(word):
-                        if tmp.name().split('.')[0] == word:
-                            wordtype.add(tmp.pos())
+                if lang == 'en':
+                    word_tokens = word_tokenize(item)	
+                    adj_present = False
+                    verb_or_noun_present = False
 
-                    if ('a' in wordtype or 's' in wordtype):
-                        adj_present = True
+                    for word in word_tokens:
+                        wordtype = set()
+                        for tmp in wn.synsets(word):
+                            if tmp.name().split('.')[0] == word:
+                                wordtype.add(tmp.pos())
 
-                    if ('n' in wordtype or 'v' in wordtype):
-                        verb_or_noun_present = True
+                        if ('a' in wordtype or 's' in wordtype):
+                            adj_present = True
 
-                    if adj_present and verb_or_noun_present:
-                        filtered_candidates.append(item)
-                        break
+                        if ('n' in wordtype or 'v' in wordtype):
+                            verb_or_noun_present = True
 
+                        if adj_present and verb_or_noun_present:
+                            filtered_candidates.append(item)
+                            break
+                else:
+                    filtered_candidates.append(item)
     return filtered_candidates
 
 def get_before_after_text(text):

@@ -105,11 +105,11 @@ def run_pipeline(filename=None,
             # Compute and filter ngrams
             candidates = []
 
-            if (before_lang is not None) and (before_lang.language == "en"):
-                candidates.extend(get_filtered_ngrams(before_text, ngram_range))
+            if before_lang is not None:
+                candidates.extend(get_filtered_ngrams(before_text, ngram_range, before_lang.language))
 
-            if (after_lang is not None) and (after_lang.language == "en"):
-                candidates.extend(get_filtered_ngrams(after_text, ngram_range))
+            if after_lang is not None:
+                candidates.extend(get_filtered_ngrams(after_text, ngram_range, after_lang.language))
 
             if len(candidates) > 0:
                 raw_counts['num_candidates_scored'] += 1
