@@ -10,7 +10,7 @@ import webdataset as wds
 from img2dataset import download
 from collections import Counter
 from models import get_model
-from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text
+from utils import convert_to_image_url_text_parquet, get_filtered_ngrams, get_before_after_text, load_perplexity_language_model, get_stats_table
 
 def run_pipeline(filename=None, 
                  convert=True, 
@@ -26,11 +26,15 @@ def run_pipeline(filename=None,
                  max_batch_size=int(2e5),
                  debug=False,
                  wandb_log_frequency=1000,
-                 matching_threshold=0.3):
+                 matching_threshold=0.3,
+                 perplexity_lm_name="laion2B-en",
+                 filter_by_lang=False):
 
     output_dir = os.path.abspath("output") if output_dir is None else output_dir
     log_frequency = 1 if debug else log_frequency
     wandb_log_frequency = 1 if debug else wandb_log_frequency
+
+    print (locals())
 
     if convert:
         if filename is None:
@@ -67,6 +71,8 @@ def run_pipeline(filename=None,
 
         # Create model
         model = get_model(model_type, device, max_batch_size)
+
+        perplexity_lm = load_perplexity_language_model(perplexity_lm_name)
 
         dataset = wds.WebDataset(filenames).decode("pil")
 
@@ -106,10 +112,10 @@ def run_pipeline(filename=None,
             candidates = []
 
             if before_lang is not None:
-                candidates.extend(get_filtered_ngrams(before_text, ngram_range, before_lang.language))
+                candidates.extend(get_filtered_ngrams(before_text, ngram_range, before_lang.language, filter_by_lang, perplexity_lm))
 
             if after_lang is not None:
-                candidates.extend(get_filtered_ngrams(after_text, ngram_range, after_lang.language))
+                candidates.extend(get_filtered_ngrams(after_text, ngram_range, after_lang.language, filter_by_lang, perplexity_lm))
 
             if len(candidates) > 0:
                 raw_counts['num_candidates_scored'] += 1
@@ -139,26 +145,27 @@ def run_pipeline(filename=None,
                 if score >= matching_threshold:
                     raw_counts['matches'] += 1
 
-                if enable_wandb:
-                    predictions_table_data.append([wandb.Image(image), prediction, score])
-
-                    num_pred_rows = len(predictions_table_data)
-
-                    # wandb recommends logging a table of only 200000 rows
-                    if num_pred_rows >= 200000:
-                        continue
-
-                if (len(predictions_table_data) % wandb_log_frequency) == 0:
-
                     if enable_wandb:
-                        predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
-                        wandb.log({"predictions_table" : predictions_table})
+                        num_pred_rows = len(predictions_table_data)
 
-                    print (raw_counts)
+                        # wandb recommends logging a table of only 200000 rows
+                        if num_pred_rows >= 200000:
+                            continue
+
+                        predictions_table_data.append([wandb.Image(image), prediction, score])
+
+                num_rows_to_log = len(predictions_table_data)
+                if (num_rows_to_log > 0) and ((num_rows_to_log % wandb_log_frequency) == 0) and enable_wandb:
+
+                    predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
+                    wandb.log({"predictions_table" : predictions_table})
+
+                    stats_table = get_stats_table(raw_counts, stats_table_cols)
+                    wandb.log({"stats_table" : stats_table})
 
             if (idx % log_frequency) == 0:
-                print (raw_counts)
-                logging.info(raw_counts)
+                #print (raw_counts)
+                logging.info(f"Num images: {raw_counts['total_imgs']}, Num scored: {raw_counts['num_candidates_scored']}, Num matches: {raw_counts['matches']}")
 
         num_pred_rows = len(predictions_table_data)
         if num_pred_rows <= 200000:
@@ -167,19 +174,8 @@ def run_pipeline(filename=None,
                 predictions_table = wandb.Table(columns=predictions_table_cols, data=predictions_table_data)
                 wandb.log({"predictions_table" : predictions_table})
 
-        # Logging for stats 
-        stats_table_data = []
-        for key, val in raw_counts.items():
-            if ("before" in key) or ("after" in key):
-                stats_table_data.append([key, val / raw_counts['total_imgs'], val])
-
-        stats_table_data.append(["inference_time", raw_counts["inference_time"] / raw_counts["num_candidates_scored"], raw_counts["inference_time"]])
-        stats_table_data.append(["matches", raw_counts["matches"] / raw_counts["num_candidates_scored"], raw_counts["matches"]])
-        stats_table_data.append(["total_imgs", 1, raw_counts["total_imgs"]])
-        stats_table_data.append(["num_candidates_scored", 1, raw_counts["num_candidates_scored"]])
-
         if enable_wandb:
-            stats_table = wandb.Table(columns=stats_table_cols, data=stats_table_data)
+            stats_table = get_stats_table(raw_counts, stats_table_cols)
             wandb.log({"stats_table" : stats_table})
 
 if __name__ == "__main__":
