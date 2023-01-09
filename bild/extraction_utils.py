@@ -36,7 +36,7 @@ def parser_bytes(url,html_byte):
   encoding = detect_encoding(html_byte)
   tree = HTMLTree.parse_from_bytes(html_byte,encoding)
   iframedict,vids,imgs,auds=dict(),dict(),dict(),dict()
-  page_config = {'img_count':0,'vid_count':0,'aud_count':0,'iframe_count':0,'youtube_count':0}
+  page_config = {'img_count':0,'vid_count':0,'aud_count':0,'iframe_count':0}
 
   for ele in tree.body.get_elements_by_tag_name("nav"):
       ele.parent.remove_child(ele)
@@ -128,14 +128,17 @@ def parser_bytes(url,html_byte):
   
   fmttext = text2chunks(text)
 
-  bildrecord = chunks2darray(chunks=fmttext,vids=vids,imgs=imgs,auds=auds,iframedict=iframedict)
+
+  bildrecord = chunks2darray(chunks=fmttext,vids=vids,imgs=imgs,auds=auds,iframedict=iframedict,pg_stats=page_config)
+
+  assert len(bildrecord) == len(fmttext), f"{len(bildrecord)},{len(fmttext) }Total Media and Text chunks don't match!"
 
   imgs = dictnt_to_list(imgs)
   vids = dictnt_to_list(vids)
   auds = dictnt_to_list(auds)
   iframedict = dictnt_to_list(iframedict)
   
-  # pandas concat design
+  # alternative pandas concat design
   #types pd.DataFrame.from_dict(imgs, orient='index')
 
 

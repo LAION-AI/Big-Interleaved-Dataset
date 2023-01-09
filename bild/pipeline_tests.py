@@ -7,11 +7,28 @@ import logging
 from .extraction_utils import parser_bytes
 from docarray import DocumentArray as DA
 
-def pipeline(warcf,wurl,config):
+
+config = dict()
+config["cwd"] = Path().absolute()
+config["rwd"] = config["cwd"] / "raw_store_test/"
+config["Extraction_store"] = config["rwd"] / "exstore/"
+config["log_store"] = config["rwd"] / "log_store/"
+config["Stats_store"] = config["rwd"] / "stats_store/"
+config["Vidstore"] = config["rwd"] / "vid_store/"
+config["Imgstore"] = config["rwd"] / "img_store/"
+config["Audstore"] = config["rwd"] / "aud_store/"
+config["Iframestore"] = config["rwd"] / "iframe_store/"
+for y in config.values():
+    y.mkdir(parents=True, exist_ok=True)
+
+
+
+
+def pipeline2(warcf="/fsx/home-harrysaini/raw_warc/CC-MAIN-20220807150925-20220807180925-00000.warc.gz",wurl="/fsx/home-harrysaini/raw_warc/CC-MAIN-20220807150925-20220807180925-00000.warc.gz",config=config):
     warc_stats ={'warc_img_count':0,'warc_vid_count':0,'warc_aud_count':0,'warc_iframe_count':0,'warc_html_hits':0,'warc_exception_counts':0}
     st=time.time()
     warchtml,warcimg,warcaud,warcvid,warciframe=list(),list(),list(),list(),list()
-
+    
     
     
     logging.basicConfig(
@@ -23,7 +40,7 @@ def pipeline(warcf,wurl,config):
         )
     for index_r,record in enumerate(ArchiveIterator(gzip.open(warcf), max_content_length=4*1024**2)):
 
-        try:
+        # try:
             if record.headers is None: continue
             if record.http_headers is None: continue
             if record.headers["WARC-Type"]=="response" and record.content_length>=128:
@@ -54,10 +71,9 @@ def pipeline(warcf,wurl,config):
 
 
         
-        except Exception as er:
-                warc_stats['warc_exception_counts']+=1
-                logging.debug(f"An exception occured at index {warc_stats['warc_html_hits']}: Total exceptions: {warc_stats['warc_exception_counts']}")
-                logging.debug(er)
+        # except Exception as er:
+        #         warc_stats['warc_exception_counts']+=1
+        #         logging.debug(f"An exception occured at index {warc_stats['warc_html_hits']}: Total exceptions: {warc_stats['warc_exception_counts']}")
                 
    
     ster=time.time()
@@ -80,3 +96,6 @@ def pipeline(warcf,wurl,config):
     df_stats=pd.DataFrame.from_dict([warc_stats]).to_json(f"{config['Stats_store']}/{wurl.split('.')[1].split('/')[-1][-5:]}_stats.json")
     
     logging.info(f"Time taken:{time.time()-st}s")
+
+
+checkpipe=pipeline2()

@@ -1,6 +1,13 @@
 import requests
 import tempfile
 import boto3
+from botocore.config import Config
+
+config = Config(
+    retries = dict(
+        max_attempts = 10
+    )
+)
 
 def download_http(wurl):
     # Append "https://data.commoncrawl.org/" to the wurl
@@ -25,7 +32,7 @@ def download_http(wurl):
 
 
 def downls_s3(wurl):
-    s3client = boto3.client('s3', use_ssl=False)
+    s3client = boto3.client('s3', use_ssl=False,config=config)
     data = tempfile.TemporaryFile()
     s3client.download_fileobj(
     'commoncrawl',
@@ -34,3 +41,11 @@ def downls_s3(wurl):
     )
     data.seek(0)
     return data
+
+def downls_s3_direct(wurl, filename):
+    s3client = boto3.client('s3', use_ssl=False)
+
+    # Open the specified file in binary write mode
+    with open(filename, 'wb') as filee:
+        # Download the file from S3 and write it to the local file
+        s3client.download_fileobj('commoncrawl', wurl, filee)

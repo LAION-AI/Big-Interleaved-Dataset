@@ -1,6 +1,5 @@
 import pandas as pd
 from pyspark.sql import SparkSession
-from bild import *
 import boto3
 from pathlib import Path
 import tempfile
@@ -8,8 +7,10 @@ from pyspark.sql.types import IntegerType
 from pyspark.sql.functions import udf
 import logging
 import time
-from bild.downtools import downls_s3,download_http
-from bild.spark_session_builder import build_spark_session
+from .downtools import downls_s3,download_http
+from .spark_session_builder import build_spark_session
+from .pipeline_utils import pipeline
+
 
 
 def path_config():
@@ -29,36 +30,36 @@ def path_config():
 
 
 
-def framer(spark:SparkSession,pqpath,amount):
+
+# def engine(wurl):
+#     wfobj = downls_s3(wurl)
+#     pipeline(wfobj,wurl,pconfig)
+#     return 1
+
+
+def disengine(pconfig):
+    def engine(wurl):
+        wfobj = downls_s3(wurl)
+        pipeline(wfobj,wurl,pconfig)
+        return 1
+    return engine
+    
+
+# pqpath = "./sept22.parquet"
+
+
+def extractor(amount:int,spark):
+    spark = spark
+    pqpath = "/fsx/home-harrysaini/Big-Interleaved-Dataset/bild/sept22.parquet"
+    pconfig = path_config()
     df=spark.read.parquet(pqpath).limit(amount)
-    return df
-
-def engine(wurl):
-    wfobj = downls_s3(wurl)
-    #We should read from another point but setting up here
-    config=path_config()
-    pipeline(wfobj,wurl,config)
-
-
-logging.basicConfig(
-    filename="./main.log",
-    level=logging.INFO,
-    filemode="w",
-    format="%(process)d:%(asctime)s:%(levelname)s:%(message)s",
-    datefmt="%d-%b-%y %H:%M:%S",
-)
-pqpath = "./bild/sept22.parquet"
-
-def main():
-    spark=build_spark_session(master="local",num_cores=16,mem_gb=16)
-    st=time.time()
-    df=framer(spark,pqpath,1)
-    udf_myFunction = udf(engine, IntegerType())
-    df = df.withColumn("message", udf_myFunction("url"))
     df.show()
-    logging.info(f"This took {time.time()-st}s")
+    engine=disengine(pconfig=pconfig)
+    udf_myFunction = udf(engine, IntegerType())
+    print("hello")
+    df = df.withColumn("Parsed", udf_myFunction("url"))
+    df.show()
+    print("hello")
+
 
         
-if __name__=="__main__":
-        main()
-   

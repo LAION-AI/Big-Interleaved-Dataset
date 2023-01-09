@@ -1,0 +1,65 @@
+46303:02-Jan-23 00:01:45:INFO:Error while receiving.
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 511, in send_command
+    answer = smart_decode(self.stream.readline()[:-1])
+RuntimeError: reentrant call inside <_io.BufferedReader name=4>
+46303:02-Jan-23 00:01:45:INFO:Closing down clientserver connection
+46303:02-Jan-23 00:01:45:ERROR:Exception while sending command.
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 511, in send_command
+    answer = smart_decode(self.stream.readline()[:-1])
+RuntimeError: reentrant call inside <_io.BufferedReader name=4>
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/java_gateway.py", line 1038, in send_command
+    response = connection.send_command(command)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 539, in send_command
+    raise Py4JNetworkError(
+py4j.protocol.Py4JNetworkError: Error while sending or receiving
+46303:02-Jan-23 00:01:46:INFO:Error while receiving.
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 511, in send_command
+    answer = smart_decode(self.stream.readline()[:-1])
+  File "/usr/lib64/python3.8/socket.py", line 669, in readinto
+    return self._sock.recv_into(b)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/context.py", line 362, in signal_handler
+    self.cancelAllJobs()
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/context.py", line 1447, in cancelAllJobs
+    self._jsc.sc().cancelAllJobs()
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/java_gateway.py", line 1321, in __call__
+    return_value = get_return_value(
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/sql/utils.py", line 190, in deco
+    return f(*a, **kw)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/protocol.py", line 334, in get_return_value
+    raise Py4JError(
+py4j.protocol.Py4JError: An error occurred while calling o74.sc
+46303:02-Jan-23 00:01:46:INFO:Closing down clientserver connection
+46303:02-Jan-23 00:01:46:ERROR:Exception while sending command.
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 511, in send_command
+    answer = smart_decode(self.stream.readline()[:-1])
+  File "/usr/lib64/python3.8/socket.py", line 669, in readinto
+    return self._sock.recv_into(b)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/context.py", line 362, in signal_handler
+    self.cancelAllJobs()
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/context.py", line 1447, in cancelAllJobs
+    self._jsc.sc().cancelAllJobs()
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/java_gateway.py", line 1321, in __call__
+    return_value = get_return_value(
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/pyspark/sql/utils.py", line 190, in deco
+    return f(*a, **kw)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/protocol.py", line 334, in get_return_value
+    raise Py4JError(
+py4j.protocol.Py4JError: An error occurred while calling o74.sc
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/java_gateway.py", line 1038, in send_command
+    response = connection.send_command(command)
+  File "/fsx/home-harrysaini/henvs/bildmain/lib64/python3.8/site-packages/py4j/clientserver.py", line 539, in send_command
+    raise Py4JNetworkError(
+py4j.protocol.Py4JNetworkError: Error while sending or receiving
+46303:02-Jan-23 00:01:46:INFO:Closing down clientserver connection
