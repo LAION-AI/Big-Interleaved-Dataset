@@ -1,16 +1,17 @@
-import pandas as pd
-from pyspark.sql import SparkSession
-import boto3
-from pathlib import Path
-import tempfile
-from pyspark.sql.types import IntegerType
-from pyspark.sql.functions import udf
 import logging
+import tempfile
 import time
-from .downtools import downls_s3,download_http
-from .spark_session_builder import build_spark_session
-from .pipeline_utils import pipeline
 
+import boto3
+import pandas as pd
+from pathlib import Path
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import udf
+from pyspark.sql.types import IntegerType
+
+from .downtools import download_http, downls_s3
+from .pipeline_utils import pipeline
+from .spark_session_builder import build_spark_session
 
 
 def path_config():
@@ -29,8 +30,6 @@ def path_config():
     return config
 
 
-
-
 # def engine(wurl):
 #     wfobj = downls_s3(wurl)
 #     pipeline(wfobj,wurl,pconfig)
@@ -40,26 +39,21 @@ def path_config():
 def disengine(pconfig):
     def engine(wurl):
         wfobj = downls_s3(wurl)
-        pipeline(wfobj,wurl,pconfig)
+        pipeline(wfobj, wurl, pconfig)
         return 1
+
     return engine
-    
-
-# pqpath = "./sept22.parquet"
 
 
-def extractor(amount:int,spark):
+def extractor(amount: int, spark):
     spark = spark
-    pqpath = "/fsx/home-harrysaini/Big-Interleaved-Dataset/bild/sept22.parquet"
+    pqpath = "../assets/sept22.parquet"
     pconfig = path_config()
-    df=spark.read.parquet(pqpath).limit(amount)
+    df = spark.read.parquet(pqpath).limit(amount)
     df.show()
-    engine=disengine(pconfig=pconfig)
+    engine = disengine(pconfig=pconfig)
     udf_myFunction = udf(engine, IntegerType())
     print("hello")
     df = df.withColumn("Parsed", udf_myFunction("url"))
     df.show()
     print("hello")
-
-
-        

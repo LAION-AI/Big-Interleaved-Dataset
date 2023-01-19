@@ -1,8 +1,9 @@
 """From -> https://github.com/rom1504/cc2dataset/blob/main/cc2dataset/spark_session_builder.py"""
 
-from pyspark.sql import SparkSession
 import os
 import sys
+
+from pyspark.sql import SparkSession
 
 
 def build_spark_session(master, num_cores, mem_gb):
@@ -35,15 +36,20 @@ def aws_ec2_s3_spark_session(master, num_cores=128, mem_gb=256):
     spark = (
         SparkSession.builder.config("spark.submit.deployMode", "client")
         .config("spark.executor.memory", main_memory)
-        .config("spark.executor.cores", str(num_cores))  # this can be set to the number of cores of the machine
+        .config("spark.executor.cores", str(num_cores))
+        # this can be set to the number of cores of the machine
         .config("spark.task.cpus", "1")
         .config("spark.executor.memoryOverhead", memory_overhead)
         .config("spark.task.maxFailures", "2")
         .config(
-            "spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.1,org.apache.spark:spark-hadoop-cloud_2.13:3.3.1"
+            "spark.jars.packages",
+            "org.apache.hadoop:hadoop-aws:3.3.1,org.apache.spark:spark-hadoop-cloud_2.13:3.3.1",
         )
         # change to the appropriate auth method, see https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/index.html
-        .config("spark.hadoop.fs.s3a.aws.credentials.provider", "com.amazonaws.auth.InstanceProfileCredentialsProvider")
+        .config(
+            "spark.hadoop.fs.s3a.aws.credentials.provider",
+            "com.amazonaws.auth.InstanceProfileCredentialsProvider",
+        )
         # ton of options to try and make s3a run faster
         .config("spark.hadoop.fs.s3a.threads.max", "512")
         .config("spark.hadoop.fs.s3a.connection.maximum", "2048")

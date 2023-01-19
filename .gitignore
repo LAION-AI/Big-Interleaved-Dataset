@@ -10,3 +10,4 @@
 .raw_store/vid_store/*
 .raw_store/img_store/*
 ./raw_store/exstore/*
+.vscode/

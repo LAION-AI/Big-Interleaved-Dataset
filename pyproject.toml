@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "big-interleaved-dataset"
+version = "0.1.0"
+description = "Big Interleaved Dataset is a LAION project that aims to create an open-source multimodal dataset like Deepmind M3W (MultiModal MassiveWeb dataset)."
+authors = [
+    "Harsimranjeet Saini <harsimrans008@gmail.com>",
+    "Alvin Deng <alvin.q.deng@utexas.edu>",
+    "Christoph Schuhmann <christoph_s@freenet.de>"
+]
+license = "Apache-2.0"
+readme = "README.md"
+packages = [{include = "bild"}]
+homepage = "https://laion.ai/"
+repository = "https://github.com/LAION-AI/Big-Interleaved-Dataset/"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+boto3 = "1.26.25"
+docarray = "0.20.0"
+fastwarc = "0.13.7"
+pandas = "1.5.2"
+pyspark = "3.3.1"
+requests = "2.28.1"
+resiliparse = "0.13.7"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+pre-commit = "^2.21.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

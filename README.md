@@ -1,35 +1,40 @@
-# Big-Interleaved-Dataset
-Big-Interleaved-Dataset is a LAION project to create an open source multimodal dataset to the likes of Deepmind M3W (MultiModal MassiveWeb dataset).
+# Big Interleaved Dataset (BILD)
+Big Interleaved Dataset is a LAION project that aims to create an open-source multimodal dataset like Deepmind M3W (MultiModal MassiveWeb dataset).
 
-## Communications:
- Real time convos #big-interleaved-dataset channel in LAION [discord](https://discord.gg/kAyhUK3jyW).
+## Development Setup
+1. Configure and install [Poetry](https://python-poetry.org/docs/#installation). We use this tool to manage our Python environment and dependencies.
+2. Clone the project and run the following commands
+```
+cd big-interleaved-dataset/
 
-Meeting's: Weekly either on Tuesday or Thursday at 8pm Cet. Link is provided in the channel.
+# Setup the Python environment and install all associated dev packages
+poetry install --with dev
 
-## Usage
-Note that:
-- Currently not acting as pkg
-- Early design expect breaking changes
+# Initialize pre-commit to setup formatting via Black, etc.
+pre-commit install
+```
+3. We have configured our virutal environment and here are some helpful commands for development.
+```
+# Activate the virutal environment
+poetry shell
 
-Create a venv and
+# Run a certain script with the virtual environment
+poetry run python tests/adhoc_test.py
 
-``` pip install -r requirements.txt ```
+# To add a new package
+poetry add numpy==1.24.1
+poetry update
+```
 
-Currently ``` execute.py ``` act as a entry point with no cli, cause the only variable to change is amount of files.
-Will integrate cctableindex for accessing all common crawl with a better CLI. Feature name P2
+For more information around using Poetry, check out their [documentation](https://python-poetry.org/docs/).
 
-So run this for now, and please take a look at ```examples/1warc.py``` for explaination 
+### Notes
+- `requirements.txt` is being auto-generated as a back-up way to configure the environment with `virtualenv`
 
-``` python3 execute.py ```
+## Communications
+We discuss our ongoing project progress at #big-interleaved-dataset on [LAION Discord](https://discord.gg/kAyhUK3jyW).
 
-## Design:
+Our weekly meeting time is usually Tuesday or Thursday at 8 PM CET. The meeting information will be provided in the channel.
 
-- BILD is being designed for keeping locality of different modalities together
-- We keep this through crating/converting alt text of elements with a positional flag in the parsed text.
-- parsed text is a list of strings such like :
-
-    ["Watch the following video to see how solar system moves in space", ###video###{0}### ,"we can see it in this picture the neptune has a elliptical orbit", ###image###{0}###, ". To see more elliptical orbits See this video", ###youtube_links###{0}### ]
-- We use ```chunks2darray``` define in ```bild.hepler_fn.py``` to convert it a list of JINA Documents
-- Current design is to create separate tables for modalities (images,audios,videos,iframes) with their md5hash as unique key.
--  We keep track of these modalities while extraction, and create a bildrecord element which is a jina DocumentArray which has md5hash as modality key to be substituted back to record 
-
+## Design
+Go to [Design](docs/design.md).

@@ -1,16 +1,18 @@
-import pandas as pd
-from pyspark.sql import SparkSession
-from bild import *
-import boto3
-from pathlib import Path
-from pyspark.sql.types import IntegerType
-from pyspark.sql.functions import udf
 import logging
 import time
-from bild.downtools import downls_s3,download_http
+
+import boto3
+import pandas as pd
+from pathlib import Path
+from pyspark.sql import SparkSession
+from pyspark.sql.types import IntegerType
+from pyspark.sql.functions import udf
+
+from bild import *
+from bild.downtools import downls_s3, download_http
 from bild.spark_session_builder import build_spark_session
 
-# path configuration for the project, used in extraction 
+# path configuration for the project, used in extraction
 def path_config():
     config = dict()
     config["cwd"] = Path().absolute()
@@ -28,15 +30,16 @@ def path_config():
 
 
 # read a dataframe from a parquet file of WARC urls of a given amount P2
-def framer(spark:SparkSession,pqpath,amount):
-    df=spark.read.parquet(pqpath).limit(amount)
+def framer(spark: SparkSession, pqpath, amount):
+    df = spark.read.parquet(pqpath).limit(amount)
     return df
+
 
 # the engine that will be applied to each row of the dataframe P2
 def engine(wurl):
     wfobj = downls_s3(wurl)
-    config=path_config()
-    pipeline(wfobj,wurl,config)
+    config = path_config()
+    pipeline(wfobj, wurl, config)
 
 
 logging.basicConfig(
@@ -48,21 +51,23 @@ logging.basicConfig(
 )
 
 # path to the parquet file of Warc urls right now sept 22 crawl P2
-pqpath = "./bild/sept22.parquet"
+pqpath = "../assets/sept22.parquet"
+
 
 def main():
     # build a spark session
-    spark=build_spark_session(master="local",num_cores=16,mem_gb=16)
+    spark = build_spark_session(master="local", num_cores=16, mem_gb=16)
 
-    st=time.time()
+    st = time.time()
     # read the dataframe P2
-    df=framer(spark,pqpath,1) # notice we are only reading 1 warc that is the first one
+    df = framer(
+        spark, pqpath, 1
+    )  # notice we are only reading 1 warc that is the first one
     udf_myFunction = udf(engine, IntegerType())
     df = df.withColumn("message", udf_myFunction("url"))
     df.show()
     logging.info(f"This took {time.time()-st}s")
 
-        
-if __name__=="__main__":
-        main()
-   
+
+if __name__ == "__main__":
+    main()
