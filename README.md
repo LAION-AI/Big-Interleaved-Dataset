@@ -2,7 +2,8 @@
 Big Interleaved Dataset is a LAION project that aims to create an open-source multimodal dataset like Deepmind M3W (MultiModal MassiveWeb dataset).
 
 ## Development Setup
-1. Configure and install [Poetry](https://python-poetry.org/docs/#installation). We use this tool to manage our Python environment and dependencies.
+1. Configure and install [Poetry](https://python-poetry.org/docs/#installation). We use this tool to manage our Python dependencies.
+2. Setup your base Python 3.8.15 environment with tools such as [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
 2. Clone the project and run the following commands
 ```
 cd big-interleaved-dataset/
@@ -10,14 +11,14 @@ cd big-interleaved-dataset/
 # Setup the Python environment and install all associated dev packages
 poetry install --with dev
 
+# Activate the virutal environment
+poetry shell
+
 # Initialize pre-commit to setup formatting via Black, etc.
 pre-commit install
 ```
 3. We have configured our virutal environment and here are some helpful commands for development.
 ```
-# Activate the virutal environment
-poetry shell
-
 # Run a certain script with the virtual environment
 poetry run python tests/adhoc_test.py
 
